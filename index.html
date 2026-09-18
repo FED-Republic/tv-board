@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <meta
+      name="description"
+      content="TV shows grouped by genre, sorted by rating. Data from TVmaze."
+    />
+    <meta property="og:title" content="TV Board" />
+    <meta property="og:description" content="TV shows grouped by genre, sorted by rating." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!--
+      The first index page and the posters are the LCP chain, so both origins warm up with the
+      shell. The API is fetched with CORS (hence crossorigin); poster <img> loads are not. The
+      hosts are literals: they must match TVMAZE_BASE_URL (services/tvmaze/config.ts).
+    -->
+    <link rel="preconnect" href="https://api.tvmaze.com" crossorigin />
+    <link rel="preconnect" href="https://static.tvmaze.com" />
+    <script>
+      // Preload the first index page only where the dashboard requests it on first paint: on `/`
+      // with no session index (stores/shows-cache.ts); anywhere else the download would be
+      // wasted. Any stored value counts as cached; parsing it in the shell is not worth a
+      // stale miss.
+      (() => {
+        const DASHBOARD_PATH = '/';
+        const INDEX_CACHE_KEY = 'tv-board.index.v4';
+        const FIRST_INDEX_PAGE_URL = 'https://api.tvmaze.com/shows?page=0';
+
+        const hasSessionIndex = () => {
+          try {
+            return sessionStorage.getItem(INDEX_CACHE_KEY) !== null;
+          } catch {
+            return false;
+          }
+        };
+
+        if (location.pathname !== DASHBOARD_PATH || hasSessionIndex()) {
+          return;
+        }
+
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.setAttribute('as', 'fetch');
+        link.crossOrigin = 'anonymous';
+        link.href = FIRST_INDEX_PAGE_URL;
+        document.head.append(link);
+      })();
+    </script>
+    <title>TV Board</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

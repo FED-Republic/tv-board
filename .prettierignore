@@ -1,0 +1,6 @@
+dist
+coverage
+package-lock.json
+
+# Captured TVmaze payloads stay byte-exact
+tests/resources/*.json
