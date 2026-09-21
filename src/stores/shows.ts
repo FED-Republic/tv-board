@@ -415,6 +415,7 @@ export const useShowsStore = defineStore('shows', () => {
     byGenre,
     knownGenres,
     pagesLoaded: computed(() => pagesLoaded.value),
+    showCount: computed(() => shows.value.length),
     isIndexComplete,
     hasMorePages,
     indexProgress,

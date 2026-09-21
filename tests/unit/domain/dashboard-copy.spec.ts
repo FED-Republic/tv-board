@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   describeEmptyDashboard,
   describeIndexStatus,
+  describeLoadedPage,
   describeMoreShows,
 } from '@/domain/dashboard-copy';
 import { OTHER_GENRE } from '@/domain/genre';
@@ -131,6 +132,62 @@ describe('describeMoreShows', () => {
 
     it('given another genre, when described, then the copy stays the same', () => {
       expect(describeMoreShows(false, 'Comedy')).toEqual(describeMoreShows(false, 'Drama'));
+    });
+  });
+});
+
+describe('describeLoadedPage', () => {
+  describe('when no page has answered the reader yet', () => {
+    it('given no report, when described, then the line stays empty', () => {
+      expect(describeLoadedPage(null, 'Drama')).toBe('');
+    });
+  });
+
+  describe('when the page brought no show at all', () => {
+    it('given nothing loaded, when described, then the line offers the button again', () => {
+      expect(describeLoadedPage({ loaded: 0, inGenre: 0 }, 'Drama')).toBe(
+        'No more shows arrived from TVmaze. Load more to try again.',
+      );
+    });
+  });
+
+  describe('when the page brought no show of the genre', () => {
+    it('given a page of 250 without Drama, when described, then it says what the page held', () => {
+      expect(describeLoadedPage({ loaded: 250, inGenre: 0 }, 'Drama')).toBe(
+        'TVmaze sent 250 more shows, none of them Drama. Load more to keep looking.',
+      );
+    });
+
+    it('given a page of one without Drama, when described, then the one show reads singular', () => {
+      expect(describeLoadedPage({ loaded: 1, inGenre: 0 }, 'Drama')).toBe(
+        'TVmaze sent 1 more show, none of them Drama. Load more to keep looking.',
+      );
+    });
+  });
+
+  describe('when the page brought shows of the genre', () => {
+    it('given 12 Drama shows of 250, when described, then both counts are named', () => {
+      expect(describeLoadedPage({ loaded: 250, inGenre: 12 }, 'Drama')).toBe(
+        'TVmaze sent 250 more shows. 12 of them are Drama.',
+      );
+    });
+
+    it('given one Drama show of 250, when described, then the genre share reads singular', () => {
+      expect(describeLoadedPage({ loaded: 250, inGenre: 1 }, 'Drama')).toBe(
+        'TVmaze sent 250 more shows. 1 of them is Drama.',
+      );
+    });
+
+    it('given a page of one Drama show, when described, then both counts read singular', () => {
+      expect(describeLoadedPage({ loaded: 1, inGenre: 1 }, 'Drama')).toBe(
+        'TVmaze sent 1 more show. 1 of them is Drama.',
+      );
+    });
+
+    it('given a hyphenated genre, when described, then it is named as it is written', () => {
+      expect(describeLoadedPage({ loaded: 250, inGenre: 3 }, 'Science-Fiction')).toBe(
+        'TVmaze sent 250 more shows. 3 of them are Science-Fiction.',
+      );
     });
   });
 });

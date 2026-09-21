@@ -131,6 +131,11 @@ export const UNLOADED_GENRE: Genre = 'Medical';
 /** The shows a page a reader asks for brings for `UNLOADED_GENRE`: what fills its empty grid. */
 export const UNLOADED_GENRE_PAGE: readonly PageShow[] = showsCarrying(UNLOADED_GENRE);
 
+/** The same page without a single `UNLOADED_GENRE` show: a page that answers, but not the genre. */
+export const OFF_GENRE_PAGE: readonly PageShow[] = EXTRA_GENRE_PAGE.filter(
+  (show) => !genreNames(show).includes(UNLOADED_GENRE),
+);
+
 /** The page past the automatic budget: the one a reader's Load more asks for. */
 export const EXTRA_PAGE = String(INDEX_PAGE_COUNT);
 
@@ -422,6 +427,10 @@ export const moreShowsButton = (): HTMLElement => screen.getByTestId(TEST_IDS.mo
 
 /** The line that stands where the more-shows button stood once TVmaze has no page left. */
 export const moreShowsEndNote = (): HTMLElement => screen.getByTestId(TEST_IDS.moreShowsEnd);
+
+/** What the line under the more-shows button says about the page the reader asked for. */
+export const moreShowsReportText = (): string =>
+  screen.getByTestId(TEST_IDS.moreShowsReport).textContent?.trim() ?? '';
 
 /** Presses a control and lets the request or the navigation behind it settle. */
 export async function pressAndSettle(name: string): Promise<void> {

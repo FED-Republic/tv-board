@@ -98,10 +98,12 @@ describe('GenreGrid', () => {
       expect(countLine()).toBe('7 shows');
     });
 
-    it('given a grid a press can widen, when rendered, then the count line is the live region', () => {
+    // The one live region under a grid is the report line: it answers the press the count
+    // line cannot, because a page that brings the genre nothing leaves the count as it was.
+    it('given a grid a press can widen, when rendered, then the count line is no live region', () => {
       renderGrid();
 
-      expect(screen.getByRole('status')).toBe(screen.getByTestId(TEST_IDS.genreGridCount));
+      expect(screen.getByRole('status')).toBe(screen.getByTestId(TEST_IDS.moreShowsReport));
     });
   });
 

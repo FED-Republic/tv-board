@@ -32,6 +32,7 @@ export const TEST_IDS = {
   moreShows: 'more-shows',
   moreShowsButton: 'more-shows-button',
   moreShowsEnd: 'more-shows-end',
+  moreShowsReport: 'more-shows-report',
   deferredBlock: 'deferred-block',
   scrollRow: 'scroll-row',
   scrollRowList: 'scroll-row-list',
