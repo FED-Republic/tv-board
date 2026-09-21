@@ -33,6 +33,8 @@ const renderGrid = () =>
 
 const countLine = (): string => screen.getByTestId(TEST_IDS.genreGridCount).textContent ?? '';
 
+const liveRegions = (): readonly HTMLElement[] => screen.getAllByRole('status');
+
 /**
  * The grid the reader just opened. Testing Library unwraps its container right after mounting,
  * which blurs whatever `onMounted` focused, so this one mounts into the body itself.
@@ -98,10 +100,24 @@ describe('GenreGrid', () => {
       expect(countLine()).toBe('7 shows');
     });
 
-    it('given a grid a press can widen, when rendered, then the count line is the live region', () => {
+    // An open grid has two live regions: the count answers the press that only renders loaded
+    // shows, the report answers the press that asks TVmaze for a page.
+    it('given a grid a press can widen, when rendered, then the count line is a live region', () => {
       renderGrid();
 
-      expect(screen.getByRole('status')).toBe(screen.getByTestId(TEST_IDS.genreGridCount));
+      expect(liveRegions()).toContain(screen.getByTestId(TEST_IDS.genreGridCount));
+    });
+
+    it('given a grid a press can widen, when rendered, then the report line is a live region', () => {
+      renderGrid();
+
+      expect(liveRegions()).toContain(screen.getByTestId(TEST_IDS.moreShowsReport));
+    });
+
+    it('given a grid a press can widen, when rendered, then those two are the only ones', () => {
+      renderGrid();
+
+      expect(liveRegions()).toHaveLength(2);
     });
   });
 

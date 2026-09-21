@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, useTemplateRef, watch } from 'vue';
+import { computed, nextTick, useTemplateRef, watch } from 'vue';
 import AppButton from '@/components/ui/AppButton.vue';
-import { describeMoreShows, LOADED_WHOLE_INDEX_TEXT } from '@/domain/dashboard-copy';
+import {
+  describeLoadedPage,
+  describeMoreShows,
+  LOADED_WHOLE_INDEX_TEXT,
+  type PageReport,
+} from '@/domain/dashboard-copy';
 import type { Genre } from '@/domain/genre';
 import { TEST_IDS } from '@/testing/test-ids';
 
@@ -9,56 +14,35 @@ type Props = {
   genre: Genre;
   canShowMore?: boolean;
   hasMorePages?: boolean;
-  isLoadingMore?: boolean;
+  isAwaitingPage?: boolean;
+  pageReport?: PageReport | null;
 };
 
 const {
   genre,
   canShowMore = false,
   hasMorePages = false,
-  isLoadingMore = false,
+  isAwaitingPage = false,
+  pageReport = null,
 } = defineProps<Props>();
 const emit = defineEmits<{ more: [] }>();
 
 const endNote = useTemplateRef<HTMLElement>('endNote');
-const hasAskedForPage = ref(false);
 
 const hasMore = computed(() => canShowMore || hasMorePages);
 const copy = computed(() => describeMoreShows(canShowMore, genre));
-// Only the page a reader asked for is a wait; the background loop fills the index unasked.
-const isAwaitingPage = computed(() => hasAskedForPage.value && isLoadingMore);
+const reportText = computed(() => describeLoadedPage(pageReport, genre, hasMorePages));
+// Only the press that asks TVmaze waits; rendering shows the app already holds needs no network.
+const isWaitingForPage = computed(() => isAwaitingPage && !canShowMore);
 
-async function onMore(): Promise<void> {
-  const asksForPage = !canShowMore;
-
-  emit('more');
-
-  if (!asksForPage) {
+/** A press during the wait is the double request the wait exists to prevent, so it is dropped. */
+function onMore(): void {
+  if (isWaitingForPage.value) {
     return;
   }
 
-  await nextTick();
-  // The store takes a press by starting a page; one it had no page for is nobody's wait.
-  hasAskedForPage.value = isLoadingMore;
+  emit('more');
 }
-
-/**
- * A press that spends the last page takes its own button off the screen, and focus with it. The
- * note that replaces it is where the reader lands instead, so the answer is one they can read.
- */
-watch(
-  () => isLoadingMore,
-  async (isLoading) => {
-    if (isLoading || !hasAskedForPage.value) {
-      return;
-    }
-
-    hasAskedForPage.value = false;
-    // The note exists only once the swap has rendered.
-    await nextTick();
-    catchDroppedFocus();
-  },
-);
 
 /** Only focus the reader lost with the button is the grid's to move; the rest is theirs. */
 function catchDroppedFocus(): void {
@@ -68,6 +52,20 @@ function catchDroppedFocus(): void {
 
   endNote.value?.focus();
 }
+
+/**
+ * A press that spends the last page takes its own button off the screen, and focus with it. The
+ * note that replaces it is where the reader lands instead, so the answer is one they can read.
+ */
+watch(isWaitingForPage, async (isWaiting) => {
+  if (isWaiting) {
+    return;
+  }
+
+  // The note exists only once the swap has rendered.
+  await nextTick();
+  catchDroppedFocus();
+});
 </script>
 
 <template>
@@ -76,7 +74,8 @@ function catchDroppedFocus(): void {
       v-if="hasMore"
       class="more-button"
       variant="primary"
-      :aria-busy="isAwaitingPage"
+      :aria-busy="isWaitingForPage"
+      :aria-disabled="isWaitingForPage"
       :data-testid="TEST_IDS.moreShowsButton"
       @click="onMore"
     >
@@ -86,6 +85,8 @@ function catchDroppedFocus(): void {
     <p v-else ref="endNote" class="end" tabindex="-1" :data-testid="TEST_IDS.moreShowsEnd">
       {{ LOADED_WHOLE_INDEX_TEXT }}
     </p>
+    <!-- Always in the tree, so the answer to a press is announced when it lands. -->
+    <p class="report" role="status" :data-testid="TEST_IDS.moreShowsReport">{{ reportText }}</p>
   </div>
 </template>
 
@@ -107,8 +108,15 @@ function catchDroppedFocus(): void {
   font-size: var(--text-prose);
 }
 
-.end {
+.end,
+.report {
   font-size: var(--text-meta);
   color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* Never `display: none`: a live region that leaves the tree is not announced when it returns. */
+.report:not(:empty) {
+  margin-block-start: var(--size-3);
 }
 </style>

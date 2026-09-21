@@ -6,7 +6,7 @@ import { setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Router } from 'vue-router';
 import GenreGrid from '@/components/show/GenreGrid.vue';
-import { LOADED_WHOLE_INDEX_TEXT } from '@/domain/dashboard-copy';
+import { LOADED_WHOLE_INDEX_TEXT, type PageReport } from '@/domain/dashboard-copy';
 import { type Genre, GRID_PAGE_SIZE } from '@/domain/genre';
 import type { Show } from '@/domain/show';
 import { TEST_IDS } from '@/testing/test-ids';
@@ -28,9 +28,15 @@ const WIDENED_COUNT = GRID_PAGE_SIZE + 15;
 /** A page that brings four grid pages at once, so presses stacked into headroom would show. */
 const FLOODED_COUNT = 4 * GRID_PAGE_SIZE;
 
+/** What a landed page brought when none of its shows carry the grid's genre. */
+const PAGE_WITHOUT_THE_GENRE: PageReport = { loaded: 250, inGenre: 0 };
+const PAGE_WITHOUT_THE_GENRE_TEXT =
+  'TVmaze sent 250 more shows, none of them Drama. Load more to keep looking.';
+
 type GridProps = {
   shows: readonly Show[];
-  isLoadingMore?: boolean;
+  isAwaitingPage?: boolean;
+  pageReport?: PageReport | null;
   hasMorePages?: boolean;
   onLoadMore?: () => void;
 };
@@ -48,11 +54,11 @@ const renderGrid = (props: GridProps) =>
 
 type Grid = ReturnType<typeof renderGrid>;
 
-/** A store that takes the press the way `loadMore` does: the page starts before the next tick. */
+/** A dashboard that takes the press the way `useGenreGrid` does: the wait starts with it. */
 function renderGridTakingPresses(props: GridProps): Grid {
   const grid: Grid = renderGrid({
     ...props,
-    onLoadMore: () => void grid.rerender({ isLoadingMore: true }),
+    onLoadMore: () => void grid.rerender({ isAwaitingPage: true }),
   });
 
   return grid;
@@ -63,6 +69,9 @@ const cardCount = (): number => within(screen.getByRole('list')).getAllByRole('l
 const countLine = (): string => screen.getByTestId(TEST_IDS.genreGridCount).textContent ?? '';
 
 const moreButton = (name: string): HTMLElement => screen.getByRole('button', { name });
+
+const reportText = (): string =>
+  screen.getByTestId(TEST_IDS.moreShowsReport).textContent?.trim() ?? '';
 
 /** A press and the tick the control waits on before it knows whether the store took it. */
 async function pressMore(name: string): Promise<void> {
@@ -218,7 +227,15 @@ describe('GenreGrid', () => {
       expect(moreButton(LOAD_MORE_LABEL).getAttribute('aria-busy')).toBe('true');
     });
 
-    it('given a press the store took, when the page is in flight, then the button stays clickable', async () => {
+    it('given a press the store took, when the page is in flight, then the button reports itself disabled', async () => {
+      renderGridTakingPresses({ shows: showsOf(SMALL_COUNT), hasMorePages: true });
+
+      await pressMore(LOAD_MORE_LABEL);
+
+      expect(moreButton(LOAD_MORE_LABEL).getAttribute('aria-disabled')).toBe('true');
+    });
+
+    it('given a press the store took, when the page is in flight, then the button keeps its place in the tab order', async () => {
       renderGridTakingPresses({ shows: showsOf(SMALL_COUNT), hasMorePages: true });
 
       await pressMore(LOAD_MORE_LABEL);
@@ -226,14 +243,23 @@ describe('GenreGrid', () => {
       expect(moreButton(LOAD_MORE_LABEL).hasAttribute('disabled')).toBe(false);
     });
 
-    it('given a one-page genre, when the background loop is running, then the button is not waiting', () => {
-      renderGrid({ shows: showsOf(SMALL_COUNT), hasMorePages: true, isLoadingMore: true });
+    it('given a press the store took, when the reader presses again, then no second page is asked for', async () => {
+      const grid = renderGridTakingPresses({ shows: showsOf(SMALL_COUNT), hasMorePages: true });
+
+      await pressMore(LOAD_MORE_LABEL);
+      await pressMore(LOAD_MORE_LABEL);
+
+      expect(grid.emitted()['loadMore']).toHaveLength(1);
+    });
+
+    it('given a one-page genre, when no press is waiting, then the button is not waiting', () => {
+      renderGrid({ shows: showsOf(SMALL_COUNT), hasMorePages: true });
 
       expect(moreButton(LOAD_MORE_LABEL).getAttribute('aria-busy')).toBe('false');
     });
 
-    it('given loaded shows left to render, when a page is in flight, then the button is not waiting', () => {
-      renderGrid({ shows: showsOf(OVERFULL_COUNT), hasMorePages: true, isLoadingMore: true });
+    it('given loaded shows left to render, when no press is waiting, then the button is not waiting', () => {
+      renderGrid({ shows: showsOf(OVERFULL_COUNT), hasMorePages: true });
 
       expect(moreButton(SHOW_MORE_LABEL).getAttribute('aria-busy')).toBe('false');
     });
@@ -262,7 +288,7 @@ describe('GenreGrid', () => {
     });
   });
 
-  describe('when the count line answers a press', () => {
+  describe('when the grid answers a press', () => {
     it('given thirty loaded shows, when Show more renders the rest, then the count line reads anew', async () => {
       renderGrid({ shows: showsOf(OVERFULL_COUNT) });
       const countBeforeThePress = countLine();
@@ -272,15 +298,24 @@ describe('GenreGrid', () => {
       expect(countLine()).not.toBe(countBeforeThePress);
     });
 
-    // The gap `DECISIONS.md` records: the line is the only answer, so nothing new means silence.
-    it('given a page that brings the genre nothing, when Load more is pressed, then the count line is unchanged', async () => {
+    it('given a page that brings the genre nothing, when it lands, then the count line is unchanged', async () => {
       const { rerender } = renderGrid({ shows: showsOf(SMALL_COUNT), hasMorePages: true });
       const countBeforeThePress = countLine();
 
       await pressMore(LOAD_MORE_LABEL);
-      await rerender({ shows: showsOf(SMALL_COUNT) });
+      await rerender({ shows: showsOf(SMALL_COUNT), pageReport: PAGE_WITHOUT_THE_GENRE });
 
       expect(countLine()).toBe(countBeforeThePress);
+    });
+
+    // What the count line cannot say: the page landed and left the genre exactly as it was.
+    it('given a page that brings the genre nothing, when it lands, then the report line says so', async () => {
+      const { rerender } = renderGrid({ shows: showsOf(SMALL_COUNT), hasMorePages: true });
+
+      await pressMore(LOAD_MORE_LABEL);
+      await rerender({ shows: showsOf(SMALL_COUNT), pageReport: PAGE_WITHOUT_THE_GENRE });
+
+      expect(reportText()).toBe(PAGE_WITHOUT_THE_GENRE_TEXT);
     });
   });
 

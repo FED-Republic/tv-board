@@ -80,3 +80,46 @@ export function describeMoreShows(canShowMore: boolean, genre: Genre): MoreShows
  * with the last page, so the reason it went needs somewhere the reader can land on.
  */
 export const LOADED_WHOLE_INDEX_TEXT = 'The whole TVmaze index is loaded.';
+
+/** What one press of "Load more" brought: the shows TVmaze sent, and how many are in the genre. */
+export type PageReport = {
+  readonly loaded: number;
+  readonly inGenre: number;
+};
+
+/**
+ * The answer under the more-shows button once the page the reader asked for has landed. A page
+ * with nothing for the genre says so and points at the button again, because the next page is
+ * the only place more of the genre can come from. Past the last page there is no button left to
+ * point at, and the end note beside this line already says why.
+ */
+export function describeLoadedPage(
+  report: PageReport | null,
+  genre: Genre,
+  hasMorePages: boolean,
+): string {
+  if (report === null) {
+    return '';
+  }
+
+  if (report.loaded === 0) {
+    return `No more shows arrived from TVmaze.${describeInvitation(hasMorePages, 'Load more to try again.')}`;
+  }
+
+  const sent = `TVmaze sent ${describeMoreCount(report.loaded)}`;
+
+  if (report.inGenre === 0) {
+    return `${sent}, none of them ${genre}.${describeInvitation(hasMorePages, 'Load more to keep looking.')}`;
+  }
+
+  return `${sent}. ${describeGenreShare(report.inGenre, genre)}.`;
+}
+
+const describeInvitation = (hasMorePages: boolean, text: string): string =>
+  hasMorePages ? ` ${text}` : '';
+
+const describeMoreCount = (count: number): string =>
+  count === 1 ? '1 more show' : `${count} more shows`;
+
+const describeGenreShare = (count: number, genre: Genre): string =>
+  count === 1 ? `1 of them is ${genre}` : `${count} of them are ${genre}`;

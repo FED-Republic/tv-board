@@ -152,6 +152,12 @@ describe('useShowsStore', () => {
       expect(store.getShowById(BREAKING_BAD)).toBeNull();
     });
 
+    it('given a new store, when showCount is read, then the index holds nothing', () => {
+      const store = useShowsStore();
+
+      expect(store.showCount).toBe(0);
+    });
+
     it('given a page 0 still in flight, when the state is read, then it is loading', async () => {
       serveIndexPages(slowFirstPage);
       const store = useShowsStore();
@@ -182,6 +188,12 @@ describe('useShowsStore', () => {
       expect(store.pagesLoaded).toBe(1);
     });
 
+    it('given the page-0 payload, when showCount is read, then it counts every loaded show', async () => {
+      const store = await storeWithFirstPage(pageZeroOnly);
+
+      expect(store.showCount).toBe(PAGE_ZERO_SHOW_COUNT);
+    });
+
     it('given the page-0 payload, when byGenre is read, then it holds a Drama row', async () => {
       const store = await storeWithFirstPage(pageZeroOnly);
 
@@ -202,6 +214,16 @@ describe('useShowsStore', () => {
       await store.loadIndex();
 
       expect(requestedPages).toEqual(['0']);
+    });
+  });
+
+  describe('when a later page repeats shows the index holds', () => {
+    it('given every page answering page 0, when they all land, then showCount is unchanged', async () => {
+      const store = await storeWithFirstPage(everyPage);
+
+      await vi.advanceTimersByTimeAsync(BACKGROUND_WINDOW_MS);
+
+      expect(store.showCount).toBe(PAGE_ZERO_SHOW_COUNT);
     });
   });
 

@@ -2,12 +2,24 @@
 
 **Live: [tv-board.fed-republic.com](https://tv-board.fed-republic.com/)**
 
-TV shows grouped by genre in horizontal rows, sorted by rating, with search, a detail page, and
-bookmarked and liked shows saved on the device. Built on the
-[TVmaze API](https://www.tvmaze.com/api) with Vue 3, TypeScript and Vite — no UI kit, no
-carousel library.
+TV shows grouped by genre in horizontal rows, sorted by rating, with search and a detail page.
+Built on the [TVmaze API](https://www.tvmaze.com/api) with Vue 3, TypeScript and Vite — no UI
+kit, no carousel library.
 
-## Features
+Extra functionality: bookmarked and liked shows saved on the device.
+
+The app explores what the TVmaze API and a few Vue libraries can and cannot do. That is why some
+server-side logic lives in client-side code, and why the app can look overcomplicated.
+
+The API has no direct genre listing, so a real build would do that server-side, with its own
+storage and caching.
+
+For an example of that split done properly, see my hybrid React Native apps on the TMDB movie API:
+
+- [Movie Slider](https://movie-slider.fed-republic.com/) — server-side proxy for filtering, sorting and saving
+- [Movie Quiz](https://movie-quiz.fed-republic.com/) — the same mechanics with an extended backend
+
+## TV Board Features
 
 - **Dashboard** — one horizontal row per genre, top 25 by rating. Scroll arrows on pointer
   devices, drag-to-scroll, keyboard navigation (arrows, Home, End), `scroll-snap` paging with
@@ -43,7 +55,6 @@ npm run validate   # type-check + lint + format check + unit tests with coverage
 npm run test:e2e   # Playwright smoke suite (npx playwright install chromium once)
 npm run build && npm run preview
 ```
-
 
 ## Architecture
 
@@ -120,8 +131,6 @@ runs the production build in Chromium at phone and desktop widths.
 - Summaries are HTML from TVmaze, rendered through one sanitising component with a tag allow-list.
 - The rate limit (20 requests / 10 s) is handled with back-off and retry, never surfaced as an
   error on first failure.
-- Posters use TVmaze's 210 × 295 `medium` on cards and 2:3 `original` on the detail page, each box
-  matching its image so nothing is cropped.
 - Loading five index pages is a deliberate ceiling. A small backend-for-frontend that crawls the
   index and serves genre lists would remove it.
 - Index pages are parsed on the main thread while the dashboard is visible, which costs LCP on

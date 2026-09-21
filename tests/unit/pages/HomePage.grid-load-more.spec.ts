@@ -127,6 +127,28 @@ describe('HomePage', () => {
 
       expect(statusText()).toBe(LOADING_MORE_STATUS);
     });
+
+    it('given a page on its way, when it has not answered, then the button reports itself disabled', async () => {
+      await loadSettledDashboardAt(pinia, PAGED_GRID_LOCATION, budgetThen(neverAnswers));
+
+      await pressAndSettle(LOAD_MORE_LABEL);
+
+      expect(buttonNamed(LOAD_MORE_LABEL).getAttribute('aria-disabled')).toBe('true');
+    });
+
+    it('given a page on its way, when the reader presses again, then no second page is requested', async () => {
+      const { requestedPages } = await loadSettledDashboardAt(
+        pinia,
+        PAGED_GRID_LOCATION,
+        budgetThen(neverAnswers),
+      );
+      await pressAndSettle(LOAD_MORE_LABEL);
+      const pagesAfterTheFirstPress = requestedPages.length;
+
+      await pressAndSettle(LOAD_MORE_LABEL);
+
+      expect(requestedPages).toHaveLength(pagesAfterTheFirstPress);
+    });
   });
 
   describe('when the background loop is running behind a one-page grid', () => {

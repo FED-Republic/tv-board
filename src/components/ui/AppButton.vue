@@ -33,6 +33,12 @@ const { variant = 'secondary' } = defineProps<Props>();
     color var(--duration-fast) var(--ease-out);
 }
 
+/* `aria-disabled`, never `disabled`: the button keeps focus while the page it asked for lands. */
+.button[aria-disabled='true'] {
+  opacity: var(--opacity-disabled);
+  cursor: progress;
+}
+
 .primary {
   border-color: transparent;
   background: var(--color-accent);

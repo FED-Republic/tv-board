@@ -4,6 +4,7 @@ import MoreShows from '@/components/show/MoreShows.vue';
 import ShowGrid from '@/components/show/ShowGrid.vue';
 import IconButton from '@/components/ui/IconButton.vue';
 import { useRevealOnMount } from '@/composables/useRevealOnMount';
+import type { PageReport } from '@/domain/dashboard-copy';
 import { type Genre, GRID_PAGE_SIZE } from '@/domain/genre';
 import type { Show } from '@/domain/show';
 import { describeRowCount } from '@/domain/show-count';
@@ -12,7 +13,8 @@ import { TEST_IDS } from '@/testing/test-ids';
 type Props = {
   genre: Genre;
   shows: readonly Show[];
-  isLoadingMore?: boolean;
+  isAwaitingPage?: boolean;
+  pageReport?: PageReport | null;
   hasMorePages?: boolean;
   reveal?: boolean;
 };
@@ -25,7 +27,8 @@ type Emits = {
 const {
   genre,
   shows,
-  isLoadingMore = false,
+  isAwaitingPage = false,
+  pageReport = null,
   hasMorePages = false,
   reveal = false,
 } = defineProps<Props>();
@@ -84,7 +87,8 @@ function onMore(): void {
       >
         {{ genre }}
       </h2>
-      <!-- Anything that widens the genre changes this line, so it is where a press is answered. -->
+      <!-- A press that only renders loaded shows changes this line and nothing else, so it
+           stays the answer to that one; the report line answers the page a press asks for. -->
       <p class="count" role="status" :data-testid="TEST_IDS.genreGridCount">{{ countText }}</p>
       <IconButton
         icon="close"
@@ -99,7 +103,8 @@ function onMore(): void {
         :genre
         :can-show-more="canShowMore"
         :has-more-pages="hasMorePages"
-        :is-loading-more="isLoadingMore"
+        :is-awaiting-page="isAwaitingPage"
+        :page-report
         @more="onMore"
       />
     </div>

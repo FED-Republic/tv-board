@@ -37,6 +37,8 @@ const {
   gridShows,
   isGridMode,
   isRevealedGrid,
+  isAwaitingPage,
+  pageReport,
   expand,
   close,
   askForPage,
@@ -113,7 +115,8 @@ onUnmounted(() => {
         :key="gridGenre"
         :genre="gridGenre"
         :shows="gridShows"
-        :is-loading-more="isLoadingMore"
+        :is-awaiting-page="isAwaitingPage"
+        :page-report
         :has-more-pages="hasMorePages"
         :reveal="isRevealedGrid"
         @close="close"
@@ -147,7 +150,8 @@ onUnmounted(() => {
             <MoreShows
               :genre
               :has-more-pages="hasMorePages"
-              :is-loading-more="isLoadingMore"
+              :is-awaiting-page="isAwaitingPage"
+              :page-report
               @more="askFromEmpty"
             />
           </template>
