@@ -44,7 +44,6 @@ Built and tested on Node 24.15.0 and npm 11.12.1 (`.nvmrc` pins the major, `pack
 npm version). No environment variables are required; `.env.example` lists optional overrides.
 
 ```bash
-nvm use
 npm ci
 npm run dev
 ```
@@ -87,18 +86,16 @@ and no store.
   import directly, so most of the app is testable without mounting a component.
 - **Vite SPA, no meta-framework.** Nothing here needs server rendering or a server at all; a
   static bundle deploys to the edge and stays cheap to reason about.
-- **No UI kit, no Tailwind, no carousel.** Plain CSS with design tokens (OKLCH, `light-dark()`,
+- **Plain CSS with Design tokens** (OKLCH, `light-dark()`,
   container queries) covers the UI, and `scroll-snap` does the rows natively — fewer dependencies
   than a carousel library, and the horizontal rows behave the way the platform already does.
-  Typefaces (Bebas Neue, Hanken Grotesk) are self-hosted via Fontsource, so nothing loads from a
-  third party at runtime.
 - **The rating is drawn, not badged.** Each card carries an accent numeral and a bar whose length
   is `(rating − 5) / 5`, so a row of twelve cards ranks at a glance. It is the one bold element.
 - **Genres derived client-side from the show index**, because TVmaze has no genre endpoint. The
   index is 378 pages, so the dashboard loads the first five (about 1,200 shows) and re-sorts as
   they arrive; the index is cached in `sessionStorage` for a day, so a reload costs no request.
   Search always hits the API, never the local slice.
-- **Zod at the API boundary.** TVmaze publishes no schema, so every response is validated once
+- **Zod at the API boundary.** Done for demonstration. TVmaze publishes no schema, so every response is validated once
   inside `services/` and wire types are inferred, never hand-written. List pages validate item by
   item, so one malformed show never empties the dashboard.
 - **Two show models.** Cards, rows, search and the cache carry a light `Show`; the detail page
