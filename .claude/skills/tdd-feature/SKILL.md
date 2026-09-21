@@ -1,6 +1,6 @@
 ---
 name: tdd-feature
-description: Red-Green-Refactor cycle for any new logic in this Vue 3 / TypeScript project (domain functions, composables, services, stores). Use when building or changing business logic; delegates RED to test-writer and the final pass to verifier.
+description: Red-Green-Refactor cycle for any new logic in this Vue 3 / TypeScript project (domain functions, composables, services, stores). Use when building or changing business logic; delegates RED to test-writer and the final pass to code-quality-check.
 ---
 
 # TDD feature
@@ -34,11 +34,11 @@ Names, duplication, magic values into constants, `readonly` collections, `assert
 
 ## 4. INTEGRATE
 
-Wire it into the page or store. Delegate the full pass to `verifier` (type-check, lint, all tests, build). Check the running app at 390 px and 1440 px, keyboard only.
+Wire it into the page or store. Delegate the full pass to `code-quality-check` (type-check, lint, all tests, build, mechanical fixes). Check the running app at 390 px and 1440 px, keyboard only.
 
 ## Checklist
 
 - [ ] Logic lives in `domain/` or a composable; the component stays dumb
 - [ ] Tests confirmed RED before implementation, GREEN after, still GREEN after refactor
 - [ ] No `any`, no mocked domain functions, no real timers or network
-- [ ] `verifier` reports PASS; `PROGRESS.md` updated
+- [ ] `code-quality-check` reports PASS; `PROGRESS.md` updated

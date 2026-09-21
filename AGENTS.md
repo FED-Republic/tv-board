@@ -11,8 +11,8 @@ speed.
    over a habit; if code and a convention disagree, fix one of them in the same change.
 2. Say in two lines which sections of `docs/conventions.md` apply. Plan the smallest change and
    list the files to touch with their mirrored spec files.
-3. Finish with `npm run validate` green (delegate to `verifier`), then one line in `PROGRESS.md`.
-   Record a new dependency, folder or pattern in `DECISIONS.md` before introducing it.
+3. Finish with `npm run validate` green (delegate to `code-quality-check`), then one line in
+   `PROGRESS.md`. Record a new dependency, folder or pattern in `DECISIONS.md` before introducing it.
 
 ## Commands
 
@@ -38,14 +38,20 @@ speed.
 Spawn these with the Agent tool without asking, including proactively:
 
 - **test-writer**: writes failing tests first (TDD RED) for `domain/`, `composables/`, `services/`
-  and `stores/`, and repairs broken tests. Do not write spec files inline.
-- **verifier**: runs the full pass (type-check, lint, all tests, build). Do not run the full suite
-  inline; a single `npx vitest run <spec>` while iterating is fine.
+  and `stores/`, writes component specs, and repairs broken tests outside the code-quality-check
+  loop. Do not write spec files inline.
+- **code-quality-check**: runs the full pass (type-check, lint, all tests, build) through its
+  child `verifier` and fixes the mechanical failures until it reports PASS. Do not run the full
+  suite inline and do not spawn `verifier` yourself; a single `npx vitest run <spec>` while
+  iterating is fine. On `FAIL: blocker`, fix the one named cause, then spawn it again. On
+  `FAIL: iteration cap`, report to the user.
 - **reviewer**: reviews the diff against `docs/conventions.md` before a commit or when a review is
   asked for.
 
-test-writer and verifier are independent; launch both in one message when a task needs both. Relay
-each report to the user; do not re-run what an agent already ran.
+Order: test-writer (RED) → main implements (GREEN) → code-quality-check → reviewer. A review fix
+goes through code-quality-check again. Never run test-writer and code-quality-check at the same
+time; both edit spec files. Relay each report to the user; never
+re-run an agent's commands yourself.
 
 ## Skills
 

@@ -178,6 +178,6 @@ tests/
 - [ ] No `any`, no casts, unions exhaustive, DTOs confined to `services/`.
 - [ ] Mirrored spec exists with Given/When/Then titles and behaviour assertions.
 - [ ] Components: tokens only, `data-testid` from `TEST_IDS`, `data-state` on async roots, accessibility checks above.
-- [ ] `npm run validate` is green (delegate to `verifier`).
+- [ ] `npm run validate` is green (delegate to `code-quality-check`).
 - [ ] Manual check: no console output, works at 390 px and 1440 px, keyboard-only pass.
 - [ ] Conventional commit; `PROGRESS.md` updated.

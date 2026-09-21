@@ -1,6 +1,6 @@
 ---
 name: test-writer
-description: TDD RED-phase specialist. Writes failing Vitest tests before the implementation exists for domain/, composables/, services/ and stores/, completes missing cases for components, and repairs broken tests. MUST BE USED whenever tests need to be written or fixed; the main agent never writes test files inline.
+description: TDD RED-phase specialist. Writes failing Vitest tests before the implementation exists for domain/, composables/, services/ and stores/, completes missing cases for components, and repairs broken tests. MUST BE USED whenever tests need to be written, or fixed outside the code-quality-check loop; the main agent never writes test files inline.
 tools: Read, Grep, Glob, Write, Edit, Bash
 model: opus
 ---

@@ -1,6 +1,6 @@
 ---
 name: verifier
-description: Read-only verification runner. Runs type-check, lint, Prettier check, the full Vitest suite and a Vite build, then reports a compact pass/fail summary. MUST BE USED for every full verification pass so the main agent does not burn context on command output. Never edits code.
+description: Read-only verification runner. Runs type-check, lint, Prettier check, the full Vitest suite and a Vite build, then reports a compact pass/fail summary. Internal child of code-quality-check; the main agent does not spawn it directly. Never edits code.
 tools: Bash, Read, Grep, Glob
 model: sonnet
 ---
