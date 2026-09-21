@@ -181,7 +181,8 @@ export const useShowsStore = defineStore('shows', () => {
   /**
    * The next page the index has not asked for, for the genre grid's "Load more". A page already
    * on its way counts as the press, and a failure settles on the background loop's rules, so
-   * pressing again is the retry.
+   * pressing again is the retry. `isLoadingMore` is set before the first `await`, so a caller
+   * can read it on the next line as the answer to whether the press was taken.
    */
   async function loadMore(): Promise<void> {
     const canLoadPage =

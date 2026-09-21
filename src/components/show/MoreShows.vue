@@ -44,6 +44,15 @@ function onMore(): void {
   emit('more');
 }
 
+/** Only focus the reader lost with the button is the grid's to move; the rest is theirs. */
+function catchDroppedFocus(): void {
+  if (document.activeElement !== document.body) {
+    return;
+  }
+
+  endNote.value?.focus();
+}
+
 /**
  * A press that spends the last page takes its own button off the screen, and focus with it. The
  * note that replaces it is where the reader lands instead, so the answer is one they can read.
@@ -57,15 +66,6 @@ watch(isWaitingForPage, async (isWaiting) => {
   await nextTick();
   catchDroppedFocus();
 });
-
-/** Only focus the reader lost with the button is the grid's to move; the rest is theirs. */
-function catchDroppedFocus(): void {
-  if (document.activeElement !== document.body) {
-    return;
-  }
-
-  endNote.value?.focus();
-}
 </script>
 
 <template>

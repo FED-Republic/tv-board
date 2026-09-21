@@ -103,19 +103,19 @@ export function describeLoadedPage(
   }
 
   if (report.loaded === 0) {
-    return `No more shows arrived from TVmaze.${invitation(hasMorePages, 'Load more to try again.')}`;
+    return `No more shows arrived from TVmaze.${describeInvitation(hasMorePages, 'Load more to try again.')}`;
   }
 
   const sent = `TVmaze sent ${describeMoreCount(report.loaded)}`;
 
   if (report.inGenre === 0) {
-    return `${sent}, none of them ${genre}.${invitation(hasMorePages, 'Load more to keep looking.')}`;
+    return `${sent}, none of them ${genre}.${describeInvitation(hasMorePages, 'Load more to keep looking.')}`;
   }
 
   return `${sent}. ${describeGenreShare(report.inGenre, genre)}.`;
 }
 
-const invitation = (hasMorePages: boolean, text: string): string =>
+const describeInvitation = (hasMorePages: boolean, text: string): string =>
   hasMorePages ? ` ${text}` : '';
 
 const describeMoreCount = (count: number): string =>
