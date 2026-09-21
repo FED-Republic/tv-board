@@ -23,7 +23,8 @@ For an example of that split done properly, see my hybrid React Native apps on t
 
 - **Dashboard** — one horizontal row per genre, top 25 by rating. Scroll arrows on pointer
   devices, drag-to-scroll, keyboard navigation (arrows, Home, End), `scroll-snap` paging with
-  dots that follow the scroll position. Page 0 of the TVmaze index renders immediately; later
+  dots that follow the scroll position.
+- **Lazy Loading** — Page 0 of the TVmaze index renders immediately; later
   pages stream in behind a progress bar and rows re-sort as they land. The first six rows mount
   eagerly, the rest as you scroll near them. Each row expands into a grid and returns in place.
 - **Show detail** — poster, rating, genre chips, facts (status, premiere, language, runtime,
