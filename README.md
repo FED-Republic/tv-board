@@ -53,7 +53,7 @@ npm run dev
 npm test           # unit tests
 npm run validate   # type-check + lint + format check + unit tests with coverage + build
 npm run test:e2e   # Playwright smoke suite (npx playwright install chromium once)
-npm run build
+npm run build && npm run preview
 ```
 
 ## Architecture

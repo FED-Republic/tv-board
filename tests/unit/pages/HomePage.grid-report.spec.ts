@@ -26,7 +26,8 @@ const WIDENED_REPORT = 'TVmaze sent 17 more shows. 17 of them are Drama.';
 /** The same page read from the Medical grid, which none of its sixteen shows carries. */
 const OFF_GENRE_REPORT =
   'TVmaze sent 16 more shows, none of them Medical. Load more to keep looking.';
-const NOTHING_ARRIVED_REPORT = 'No more shows arrived from TVmaze. Load more to try again.';
+/** The press that spent the last page: no button is left, so the line invites nothing. */
+const NOTHING_ARRIVED_REPORT = 'No more shows arrived from TVmaze.';
 
 let pinia: TestingPinia;
 

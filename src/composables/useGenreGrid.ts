@@ -22,6 +22,12 @@ type GenreGridView = {
   readonly askFromEmpty: () => void;
 };
 
+/** What the index and the open grid hold right now; a report is the growth between two of these. */
+type LoadedCounts = {
+  readonly loaded: number;
+  readonly inGenre: number;
+};
+
 /**
  * The dashboard's genre grid: the genre it holds, the shows it pages through, and the row that
  * takes focus when it closes. While the `Other` grid is open the promotion set is frozen, so no
@@ -29,14 +35,15 @@ type GenreGridView = {
  */
 export function useGenreGrid(): GenreGridView {
   const shows = useShowsStore();
-  const { byGenre, isLoadingMore, showCount } = storeToRefs(shows);
+  const { byGenre, isLoadingMore, pagesLoaded, showCount } = storeToRefs(shows);
   const { genre, revealedGenre, isGridRevealed, expand, close } = useGenreView();
 
   useFrozenGenreLayout(genre);
 
   const hasAskedFromEmpty = ref(false);
   /** What the index and the grid held when the reader pressed; the page's report is the growth. */
-  const pressedAt = ref<PageReport | null>(null);
+  const pressedAt = ref<LoadedCounts | null>(null);
+  const pagesAtPress = ref(0);
   const lastReport = ref<PageReport | null>(null);
 
   // Every loaded show of the genre, not the row's top 25: the grid pages through them.
@@ -48,23 +55,24 @@ export function useGenreGrid(): GenreGridView {
   const isRevealedGrid = computed(() => isGridRevealed.value || hasAskedFromEmpty.value);
   const revealedRow = computed(() => revealedRowOf(revealedGenre.value));
   // Only the page a reader asked for is a wait; the background loop fills the index unasked.
-  const isAwaitingPage = computed(() => pressedAt.value !== null && isLoadingMore.value);
+  const isAwaitingPage = computed(() => pressedAt.value !== null);
   const pageReport = computed(() => lastReport.value);
 
   /** The next index page the grid has not asked for; the shows it brings render as they land. */
   function askForPage(): void {
     const before = countLoaded();
 
-    lastReport.value = null;
     void shows.loadMore();
 
     // The store takes a press by starting a page, or already has one on its way; one it had no
-    // page for is nobody's wait.
+    // page for is nobody's wait, and it must not wipe the answer still on screen.
     if (!isLoadingMore.value) {
       return;
     }
 
+    lastReport.value = null;
     pressedAt.value = before;
+    pagesAtPress.value = pagesLoaded.value;
   }
 
   /** The empty state's own press: the grid it may bring is the reader's, so it arrives revealed. */
@@ -73,11 +81,11 @@ export function useGenreGrid(): GenreGridView {
     askForPage();
   }
 
-  function countLoaded(): PageReport {
+  function countLoaded(): LoadedCounts {
     return { loaded: showCount.value, inGenre: gridShows.value.length };
   }
 
-  function reportGrowthSince(before: PageReport): PageReport {
+  function reportGrowthSince(before: LoadedCounts): PageReport {
     const now = countLoaded();
 
     return { loaded: now.loaded - before.loaded, inGenre: now.inGenre - before.inGenre };
@@ -100,14 +108,20 @@ export function useGenreGrid(): GenreGridView {
     return revealTargetOf(byGenre.value, revealed);
   }
 
-  // The wait ends when the store stops loading, not when a page lands: a failed page is answered
-  // too, and a press during the background loop is answered with what the loop brought.
-  watch(isLoadingMore, (isLoading) => {
-    if (isLoading || pressedAt.value === null) {
+  // One press, one page: the wait ends on the page that lands, not on the loop that keeps going
+  // past it, and on a loop that stops without one, because a failed page is an answer too.
+  watch([pagesLoaded, isLoadingMore], ([pages, isLoading]) => {
+    const before = pressedAt.value;
+
+    if (before === null) {
       return;
     }
 
-    lastReport.value = reportGrowthSince(pressedAt.value);
+    if (isLoading && pages === pagesAtPress.value) {
+      return;
+    }
+
+    lastReport.value = reportGrowthSince(before);
     pressedAt.value = null;
   });
 

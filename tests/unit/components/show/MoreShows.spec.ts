@@ -14,11 +14,17 @@ const LOAD_MORE_LABEL = 'Load more shows from TVmaze';
 const MIXED_PAGE: PageReport = { loaded: 10, inGenre: 4 };
 const MIXED_PAGE_TEXT = 'TVmaze sent 10 more shows. 4 of them are Drama.';
 
+/** The last page TVmaze had, and it brought nothing the index did not already hold. */
+const EMPTY_PAGE: PageReport = { loaded: 0, inGenre: 0 };
+const EMPTY_PAGE_TEXT = 'No more shows arrived from TVmaze.';
+/** The word the invitation to press again is written with; the end note has taken the button. */
+const INVITATION_WORDS = 'Load more';
+
 type ControlProps = {
   canShowMore?: boolean;
   hasMorePages?: boolean;
   isAwaitingPage?: boolean;
-  report?: PageReport | null;
+  pageReport?: PageReport | null;
 };
 
 /** In the document itself, so `screen` reaches the control and its report line. */
@@ -114,13 +120,13 @@ describe('MoreShows', () => {
     });
 
     it('given a page that brought shows, when rendered, then the line reports what it brought', () => {
-      mountControl({ hasMorePages: true, report: MIXED_PAGE });
+      mountControl({ hasMorePages: true, pageReport: MIXED_PAGE });
 
       expect(reportText()).toBe(MIXED_PAGE_TEXT);
     });
 
     it('given the press that spent the last page, when rendered, then the line still reports it', () => {
-      mountControl({ hasMorePages: false, report: MIXED_PAGE });
+      mountControl({ hasMorePages: false, pageReport: MIXED_PAGE });
 
       expect(reportText()).toBe(MIXED_PAGE_TEXT);
     });
@@ -128,9 +134,35 @@ describe('MoreShows', () => {
     it('given a page that answered, when the report arrives, then the line reads anew', async () => {
       const control = mountControl({ hasMorePages: true });
 
-      await control.setProps({ report: MIXED_PAGE });
+      await control.setProps({ pageReport: MIXED_PAGE });
 
       expect(reportText()).toBe(MIXED_PAGE_TEXT);
+    });
+  });
+
+  describe('when the last page brought the reader nothing', () => {
+    it('given a page left at TVmaze, when rendered, then the line points at the button again', () => {
+      mountControl({ hasMorePages: true, pageReport: EMPTY_PAGE });
+
+      expect(reportText()).toBe('No more shows arrived from TVmaze. Load more to try again.');
+    });
+
+    it('given the last page, when rendered, then the line reports it without inviting a press', () => {
+      mountControl({ hasMorePages: false, pageReport: EMPTY_PAGE });
+
+      expect(reportText()).toBe(EMPTY_PAGE_TEXT);
+    });
+
+    it('given the last page, when rendered, then the line names no button the end note removed', () => {
+      mountControl({ hasMorePages: false, pageReport: EMPTY_PAGE });
+
+      expect(reportText()).not.toContain(INVITATION_WORDS);
+    });
+
+    it('given the last page, when rendered, then the end note stands where the button was', () => {
+      mountControl({ hasMorePages: false, pageReport: EMPTY_PAGE });
+
+      expect(endNote().textContent?.trim()).toBe(LOADED_WHOLE_INDEX_TEXT);
     });
   });
 });

@@ -90,25 +90,33 @@ export type PageReport = {
 /**
  * The answer under the more-shows button once the page the reader asked for has landed. A page
  * with nothing for the genre says so and points at the button again, because the next page is
- * the only place more of the genre can come from.
+ * the only place more of the genre can come from. Past the last page there is no button left to
+ * point at, and the end note beside this line already says why.
  */
-export function describeLoadedPage(report: PageReport | null, genre: Genre): string {
+export function describeLoadedPage(
+  report: PageReport | null,
+  genre: Genre,
+  hasMorePages: boolean,
+): string {
   if (report === null) {
     return '';
   }
 
   if (report.loaded === 0) {
-    return 'No more shows arrived from TVmaze. Load more to try again.';
+    return `No more shows arrived from TVmaze.${invitation(hasMorePages, 'Load more to try again.')}`;
   }
 
   const sent = `TVmaze sent ${describeMoreCount(report.loaded)}`;
 
   if (report.inGenre === 0) {
-    return `${sent}, none of them ${genre}. Load more to keep looking.`;
+    return `${sent}, none of them ${genre}.${invitation(hasMorePages, 'Load more to keep looking.')}`;
   }
 
   return `${sent}. ${describeGenreShare(report.inGenre, genre)}.`;
 }
+
+const invitation = (hasMorePages: boolean, text: string): string =>
+  hasMorePages ? ` ${text}` : '';
 
 const describeMoreCount = (count: number): string =>
   count === 1 ? '1 more show' : `${count} more shows`;

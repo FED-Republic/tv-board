@@ -14,7 +14,7 @@ type Props = {
   genre: Genre;
   shows: readonly Show[];
   isAwaitingPage?: boolean;
-  report?: PageReport | null;
+  pageReport?: PageReport | null;
   hasMorePages?: boolean;
   reveal?: boolean;
 };
@@ -28,7 +28,7 @@ const {
   genre,
   shows,
   isAwaitingPage = false,
-  report = null,
+  pageReport = null,
   hasMorePages = false,
   reveal = false,
 } = defineProps<Props>();
@@ -87,7 +87,9 @@ function onMore(): void {
       >
         {{ genre }}
       </h2>
-      <p class="count" :data-testid="TEST_IDS.genreGridCount">{{ countText }}</p>
+      <!-- A press that only renders loaded shows changes this line and nothing else, so it
+           stays the answer to that one; the report line answers the page a press asks for. -->
+      <p class="count" role="status" :data-testid="TEST_IDS.genreGridCount">{{ countText }}</p>
       <IconButton
         icon="close"
         :label="closeLabel"
@@ -102,7 +104,7 @@ function onMore(): void {
         :can-show-more="canShowMore"
         :has-more-pages="hasMorePages"
         :is-awaiting-page="isAwaitingPage"
-        :report
+        :page-report
         @more="onMore"
       />
     </div>

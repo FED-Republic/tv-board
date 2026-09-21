@@ -116,7 +116,7 @@ onUnmounted(() => {
         :genre="gridGenre"
         :shows="gridShows"
         :is-awaiting-page="isAwaitingPage"
-        :report="pageReport"
+        :page-report="pageReport"
         :has-more-pages="hasMorePages"
         :reveal="isRevealedGrid"
         @close="close"
@@ -151,7 +151,7 @@ onUnmounted(() => {
               :genre
               :has-more-pages="hasMorePages"
               :is-awaiting-page="isAwaitingPage"
-              :report="pageReport"
+              :page-report="pageReport"
               @more="askFromEmpty"
             />
           </template>

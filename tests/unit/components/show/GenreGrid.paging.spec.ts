@@ -36,7 +36,7 @@ const PAGE_WITHOUT_THE_GENRE_TEXT =
 type GridProps = {
   shows: readonly Show[];
   isAwaitingPage?: boolean;
-  report?: PageReport | null;
+  pageReport?: PageReport | null;
   hasMorePages?: boolean;
   onLoadMore?: () => void;
 };
@@ -303,7 +303,7 @@ describe('GenreGrid', () => {
       const countBeforeThePress = countLine();
 
       await pressMore(LOAD_MORE_LABEL);
-      await rerender({ shows: showsOf(SMALL_COUNT), report: PAGE_WITHOUT_THE_GENRE });
+      await rerender({ shows: showsOf(SMALL_COUNT), pageReport: PAGE_WITHOUT_THE_GENRE });
 
       expect(countLine()).toBe(countBeforeThePress);
     });
@@ -313,7 +313,7 @@ describe('GenreGrid', () => {
       const { rerender } = renderGrid({ shows: showsOf(SMALL_COUNT), hasMorePages: true });
 
       await pressMore(LOAD_MORE_LABEL);
-      await rerender({ shows: showsOf(SMALL_COUNT), report: PAGE_WITHOUT_THE_GENRE });
+      await rerender({ shows: showsOf(SMALL_COUNT), pageReport: PAGE_WITHOUT_THE_GENRE });
 
       expect(reportText()).toBe(PAGE_WITHOUT_THE_GENRE_TEXT);
     });

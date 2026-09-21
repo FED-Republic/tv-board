@@ -15,7 +15,7 @@ type Props = {
   canShowMore?: boolean;
   hasMorePages?: boolean;
   isAwaitingPage?: boolean;
-  report?: PageReport | null;
+  pageReport?: PageReport | null;
 };
 
 const {
@@ -23,7 +23,7 @@ const {
   canShowMore = false,
   hasMorePages = false,
   isAwaitingPage = false,
-  report = null,
+  pageReport = null,
 } = defineProps<Props>();
 const emit = defineEmits<{ more: [] }>();
 
@@ -31,11 +31,13 @@ const endNote = useTemplateRef<HTMLElement>('endNote');
 
 const hasMore = computed(() => canShowMore || hasMorePages);
 const copy = computed(() => describeMoreShows(canShowMore, genre));
-const reportText = computed(() => describeLoadedPage(report, genre));
+const reportText = computed(() => describeLoadedPage(pageReport, genre, hasMorePages));
+// Only the press that asks TVmaze waits; rendering shows the app already holds needs no network.
+const isWaitingForPage = computed(() => isAwaitingPage && !canShowMore);
 
 /** A press during the wait is the double request the wait exists to prevent, so it is dropped. */
 function onMore(): void {
-  if (isAwaitingPage) {
+  if (isWaitingForPage.value) {
     return;
   }
 
@@ -46,18 +48,15 @@ function onMore(): void {
  * A press that spends the last page takes its own button off the screen, and focus with it. The
  * note that replaces it is where the reader lands instead, so the answer is one they can read.
  */
-watch(
-  () => isAwaitingPage,
-  async (isAwaiting) => {
-    if (isAwaiting) {
-      return;
-    }
+watch(isWaitingForPage, async (isWaiting) => {
+  if (isWaiting) {
+    return;
+  }
 
-    // The note exists only once the swap has rendered.
-    await nextTick();
-    catchDroppedFocus();
-  },
-);
+  // The note exists only once the swap has rendered.
+  await nextTick();
+  catchDroppedFocus();
+});
 
 /** Only focus the reader lost with the button is the grid's to move; the rest is theirs. */
 function catchDroppedFocus(): void {
@@ -75,8 +74,8 @@ function catchDroppedFocus(): void {
       v-if="hasMore"
       class="more-button"
       variant="primary"
-      :aria-busy="isAwaitingPage"
-      :aria-disabled="isAwaitingPage"
+      :aria-busy="isWaitingForPage"
+      :aria-disabled="isWaitingForPage"
       :data-testid="TEST_IDS.moreShowsButton"
       @click="onMore"
     >

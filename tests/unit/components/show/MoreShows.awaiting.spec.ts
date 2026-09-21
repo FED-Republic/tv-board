@@ -7,6 +7,7 @@ import { TEST_IDS } from '@/testing/test-ids';
 
 const GENRE: Genre = 'Drama';
 const LOAD_MORE_LABEL = 'Load more shows from TVmaze';
+const SHOW_MORE_LABEL = 'Show more Drama shows';
 
 type ControlProps = {
   canShowMore?: boolean;
@@ -27,6 +28,9 @@ const mountControl = (props: ControlProps = {}) =>
 type Control = ReturnType<typeof mountControl>;
 
 const button = (): HTMLElement => screen.getByRole('button', { name: LOAD_MORE_LABEL });
+
+/** The same one control under its other name, while the app still holds shows to render. */
+const showMoreButton = (): HTMLElement => screen.getByRole('button', { name: SHOW_MORE_LABEL });
 
 const endNote = (): HTMLElement => screen.getByTestId(TEST_IDS.moreShowsEnd);
 
@@ -80,6 +84,33 @@ describe('MoreShows', () => {
       await fireEvent.click(button());
 
       expect(control.emitted('more')).toBeUndefined();
+    });
+  });
+
+  // Rendering shows the app already holds needs no network, so that press never waits on one.
+  describe('when a page is on its way while loaded shows are left to render', () => {
+    it('given loaded shows left, when a page is on its way, then the button stays pressable', () => {
+      mountControl({ canShowMore: true, hasMorePages: true, isAwaitingPage: true });
+
+      expect(showMoreButton().getAttribute('aria-disabled')).toBe('false');
+    });
+
+    it('given loaded shows left, when a page is on its way, then the button reports no wait', () => {
+      mountControl({ canShowMore: true, hasMorePages: true, isAwaitingPage: true });
+
+      expect(showMoreButton().getAttribute('aria-busy')).toBe('false');
+    });
+
+    it('given loaded shows left, when the button is pressed, then more is emitted once', async () => {
+      const control = mountControl({
+        canShowMore: true,
+        hasMorePages: true,
+        isAwaitingPage: true,
+      });
+
+      await fireEvent.click(showMoreButton());
+
+      expect(control.emitted('more')).toHaveLength(1);
     });
   });
 
